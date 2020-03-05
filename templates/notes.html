@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block header %}
+    <title>Notes++</title>
+    <h1>Take notes</h1>
+    
+    
+    
+</head>
+
+
+<form method="POST" onsubmit="return copyContent()" action="{{ url_for('notes') }}">
+  
+    <fieldset>
+     <legend>Notes</legend>
+     <!-- this is the actual textbox you type into   -->
+     {{ form.csrf_token }}
+     {{ form.text }}
+     <!-- this is the overlay thing when you click off-->
+     <div id=overlay>Enter text here!<p><br><br><br><br><br><br><br><br></p></div>
+     <script>
+      let text = document.getElementById("text");
+      let div = document.getElementById("overlay");
+      text.hidden = true;
+      overlay.hidden = false;
+      overlay.contentEditable = "true";
+      overlay.oninput = (e) => {
+        text.value = overlay.innerHTML;
+      };
+
+      function copyContent () {
+        document.getElementById("text").value = document.getElementById("overlay").innerHTML;
+        return true;
+      }
+      
+     </script>
+     
+    </fieldset>
+    
+    <p><input type="submit" value="submit"></p>
+   </form>   
+   
+</html>
+{% endblock %}
+

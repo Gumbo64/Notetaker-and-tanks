@@ -1,0 +1,35 @@
+<html>
+        <body>
+           
+        <header>
+          <title>Website</title>
+                <link rel="stylesheet" href="{{ url_for('static',filename='css/main.css') }}">
+                <div class="container">
+                        <div id="navigation">
+                        <h1 class="logo">Navigation menu</h1>
+                        <strong><nav>
+                    <ul class="menu">
+                      <li><a href="{{ url_for('home') }}">Home</a></li>
+                      <li><a href="{{ url_for('signup') }}">Sign up</a></li>
+                      <li><a href="{{ url_for('loginform') }}">Log in</a></li>
+                      <li><a href="{{ url_for('notes') }}">Notes</a></li>
+                    </ul>
+                  </nav></strong>
+                <div id="top">
+                
+                {% block header %}{% endblock %}
+                </div>
+                <div id="text">
+                {% block text %}{% endblock %}
+                </div>
+
+                {% block image %}{% endblock %}
+
+                </div>
+                </div>
+              </header>
+           
+    </body>
+    
+
+</html>
