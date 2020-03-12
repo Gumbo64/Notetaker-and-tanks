@@ -1,42 +1,67 @@
 {% extends 'base.html' %}
 {% block header %}
     <title>Notes++</title>
-    <h1>Take notes</h1>
-    
-    
-    
+    <h2>Note Navigation</h2>
+    <script>
+    var titles = {{ notestext | safe }};
+    var ids = {{ notesids | safe }};
+    var i;
+    let texto = "";
+    for (i = 0; i < ids.length; i++) {
+      texto += "<li><a href='{{ url_for('home') }}"+"notes/"+ids[i]+"''>"+titles[i]+"</a></li>";
+    }
+    console.log(texto);
+    document.write(texto);
+
+    </script>
+    <br>
 </head>
 
 
 <form method="POST" onsubmit="return copyContent()" action="{{ url_for('notes') }}">
-  
+  {{ form.csrf_token }}
+  <fieldset>
+    <legend>Title</legend>
+    {{ form.text3 }}
+    {{ form.text2 }}
+    <div id=overlay2>{{ title }}</div>
+     <script>
+      let titleform = document.getElementById("text2");
+      let titletype = document.getElementById("overlay2");
+      let idbox = document.getElementById("text3");
+      idbox.hidden=true;
+      idbox.value='{{ currentid }}';
+      titleform.hidden = true;
+      titleform.value="";
+      titletype.hidden = false;
+      titletype.contentEditable = true;
+      
+    </script>
+  </fieldset>
     <fieldset>
      <legend>Notes</legend>
      <!-- this is the actual textbox you type into   -->
-     {{ form.csrf_token }}
+     
      {{ form.text }}
      <!-- this is the overlay thing when you click off-->
-     <div id=overlay>Enter text here!<p><br><br><br><br><br><br><br><br></p></div>
+     <div id=overlay>{{ text }}</div>
      <script>
       let text = document.getElementById("text");
       let div = document.getElementById("overlay");
       text.hidden = true;
+      text.value="";
       overlay.hidden = false;
-      overlay.contentEditable = "true";
-      overlay.oninput = (e) => {
-        text.value = overlay.innerHTML;
-      };
+      overlay.contentEditable = true;
 
       function copyContent () {
         document.getElementById("text").value = document.getElementById("overlay").innerHTML;
+        document.getElementById("text2").value = document.getElementById("overlay2").innerHTML;
         return true;
       }
-      
      </script>
-     
     </fieldset>
     
-    <p><input type="submit" value="submit"></p>
+    <p><input type="submit" value="Save"></p>
    </form>   
    
 </html>
