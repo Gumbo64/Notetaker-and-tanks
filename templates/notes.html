@@ -24,13 +24,13 @@
     <legend>Title</legend>
     {{ form.text3 }}
     {{ form.text2 }}
-    <div id=overlay2>{{ title }}</div>
+    <div id=overlay2>{{ title | safe  }}</div>
      <script>
       let titleform = document.getElementById("text2");
       let titletype = document.getElementById("overlay2");
       let idbox = document.getElementById("text3");
       idbox.hidden=true;
-      idbox.value='{{ currentid }}';
+      idbox.value='{{ currentid | safe }}';
       titleform.hidden = true;
       titleform.value="";
       titletype.hidden = false;
@@ -44,8 +44,9 @@
      
      {{ form.text }}
      <!-- this is the overlay thing when you click off-->
-     <div id=overlay>{{ text }}</div>
+     <div id=overlay>{{ text | safe }}</div>
      <script>
+      
       let text = document.getElementById("text");
       let div = document.getElementById("overlay");
       text.hidden = true;
