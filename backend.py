@@ -74,8 +74,8 @@ def notes():
         if form.text3.data == "new":
             text = form.text.data
             title=form.text2.data
-            text = text.replace('&lt;img', '<img').replace('&gt;', '>')
-            title = title.replace('&lt;img', '<img').replace('&gt;', '>')
+            text = text.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
+            title = title.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
             note = Notes(username = current_user.username, text= text, title=title)
             db.session.add(note)
             db.session.commit()
@@ -87,8 +87,8 @@ def notes():
                 text = form.text.data
                 title=form.text2.data
 
-                text = text.replace('&lt;img', '<img').replace('&gt;', '>')
-                title = title.replace('&lt;img', '<img').replace('&gt;', '>')
+                text = text.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
+                title = title.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
                 note.text = text
                 note.title = title
                 db.session.commit()
@@ -117,9 +117,8 @@ def noteselected(noteid):
         else:
             text = form.text.data
             title=form.text2.data
-
-            text = text.replace('&lt;img', '<img').replace('&gt;', '>')
-            title = title.replace('&lt;img', '<img').replace('&gt;', '>')
+            text = text.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
+            title = title.replace('&lt;img', '<img').replace('&gt;', '>').replace('<script', '&lt;script')
             note.text = text
             note.title= title
             db.session.commit()

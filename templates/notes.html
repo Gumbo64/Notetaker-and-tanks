@@ -1,70 +1,98 @@
-{% extends 'base.html' %}
-{% block header %}
-    <title>Notes++</title>
-    <h2>Note Navigation</h2>
-    <script>
-    var titles = {{ notestext | safe }};
-    var ids = {{ notesids | safe }};
-    var i;
-    let texto = "";
-    for (i = 0; i < ids.length; i++) {
-      texto += "<li><a href='{{ url_for('home') }}"+"notes/"+ids[i]+"''>"+titles[i]+"</a></li>";
-    }
-    console.log(texto);
-    document.write(texto);
-
-    </script>
-    <br>
+<html>
+<link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTRKtbaapNudAWF1FKAADraPYR_YvmDm4P08PMz21wAs8i3w9DE">
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
+<script type="text/javascript"></script>
+<script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
+<script type="text/javascript"></script>
+<head>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/notes.css') }}">
+<script>
+hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
+  switch (handler.key) {
+    case 'ctrl+a': alert('you pressed ctrl+a!');
+      break;
+    case 'ctrl+b': alert('you pressed ctrl+b!');
+      break;
+    case 'r': alert('you pressed r!');
+      break;
+    case 'f': alert('you pressed f!');
+      break;
+    default: alert(event);
+  }
+});
+</script>
+<title>Notes++</title>
 </head>
-
-
 <form method="POST" onsubmit="return copyContent()" action="{{ url_for('notes') }}">
   {{ form.csrf_token }}
-  <fieldset>
-    <legend>Title</legend>
-    {{ form.text3 }}
-    {{ form.text2 }}
-    <div id=overlay2>{{ title | safe  }}</div>
-     <script>
-      let titleform = document.getElementById("text2");
-      let titletype = document.getElementById("overlay2");
-      let idbox = document.getElementById("text3");
-      idbox.hidden=true;
-      idbox.value='{{ currentid | safe }}';
-      titleform.hidden = true;
-      titleform.value="";
-      titletype.hidden = false;
-      titletype.contentEditable = true;
-      
-    </script>
-  </fieldset>
+<h1>Notes++</h1>
+<div class="grid-container">
+  <div class="notetitle">
     <fieldset>
-     <legend>Notes</legend>
-     <!-- this is the actual textbox you type into   -->
-     
-     {{ form.text }}
-     <!-- this is the overlay thing when you click off-->
-     <div id=overlay>{{ text | safe }}</div>
-     <script>
-      
-      let text = document.getElementById("text");
-      let div = document.getElementById("overlay");
-      text.hidden = true;
-      text.value="";
-      overlay.hidden = false;
-      overlay.contentEditable = true;
-
-      function copyContent () {
-        document.getElementById("text").value = document.getElementById("overlay").innerHTML;
-        document.getElementById("text2").value = document.getElementById("overlay2").innerHTML;
-        return true;
-      }
-     </script>
+      <legend>Title</legend>
+      {{ form.text3 }}
+      {{ form.text2 }}
+      <div id=overlay2>{{ title | safe  }}</div>
+       <script>
+        let titleform = document.getElementById("text2");
+        let titletype = document.getElementById("overlay2");
+        let idbox = document.getElementById("text3");
+        idbox.hidden=true;
+        idbox.value='{{ currentid | safe }}';
+        titleform.hidden = true;
+        titleform.value="";
+        titletype.hidden = false;
+        titletype.contentEditable = true;
+        
+      </script>
     </fieldset>
+  </div>  
+  <div class="notenavigation">
+      <h2>Note Navigation</h2>
+      <script>
+      var titles = {{ notestext | safe }};
+      var ids = {{ notesids | safe }};
+      var i;
+      let texto = "";
+      for (i = 0; i < ids.length; i++) {
+        texto += "<a href='{{ url_for('home') }}"+"notes/"+ids[i]+"''>"+titles[i]+"</a> | ";
+      }
+      console.log(texto);
+      document.write(texto);
+      </script>
+  </div>
+  
+  <div class="notetext">
+    <fieldset>
+      <legend>Notes</legend>
+      <!-- this is the actual textbox you type into   -->
+      
+      {{ form.text }}
+      <!-- this is the overlay thing when you click off-->
+      <div id=overlay>{{ text | safe }}</div>
+      <script>
+       
+       let text = document.getElementById("text");
+       let div = document.getElementById("overlay");
+       text.hidden = true;
+       text.value="";
+       overlay.hidden = false;
+       overlay.contentEditable = true;
+ 
+       function copyContent () {
+         document.getElementById("text").value = document.getElementById("overlay").innerHTML;
+         document.getElementById("text2").value = document.getElementById("overlay2").innerHTML;
+         return true;
+       }
+      </script>
+     </fieldset>
+     <p><input type="submit" value="Save"></p>
+     
+     
+
     
-    <p><input type="submit" value="Save"></p>
-   </form>   
-   
+  </div>
+</div>
+</form>  
 </html>
-{% endblock %}
 
