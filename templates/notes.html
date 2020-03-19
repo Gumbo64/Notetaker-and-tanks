@@ -1,5 +1,5 @@
 <html>
-<link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTRKtbaapNudAWF1FKAADraPYR_YvmDm4P08PMz21wAs8i3w9DE">
+<link rel="icon" href="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwebstockreview.net%2Fexplore%2Fnotes-clipart-pencil-icon%2F&psig=AOvVaw1z3WuvuqOwbRir1Z8zlbHW&ust=1584664563039000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCIDyv96lpegCFQAAAAAdAAAAABAD">
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
 <script type="text/javascript"></script>
 <script src="https://unpkg.com/hotkeys-js/dist/hotkeys.min.js"></script>
@@ -25,7 +25,6 @@ hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
 </head>
 <form method="POST" onsubmit="return copyContent()" action="{{ url_for('notes') }}">
   {{ form.csrf_token }}
-<h1>Notes++</h1>
 <div class="grid-container">
   <div class="notetitle">
     <fieldset>
@@ -48,14 +47,13 @@ hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
     </fieldset>
   </div>  
   <div class="notenavigation">
-      <h2>Note Navigation</h2>
       <script>
       var titles = {{ notestext | safe }};
       var ids = {{ notesids | safe }};
       var i;
       let texto = "";
       for (i = 0; i < ids.length; i++) {
-        texto += "<a href='{{ url_for('home') }}"+"notes/"+ids[i]+"''>"+titles[i]+"</a> | ";
+        texto += "<li><a href='{{ url_for('home') }}"+"notes/"+ids[i]+"''>"+titles[i]+"</a></li> ";
       }
       console.log(texto);
       document.write(texto);
@@ -86,7 +84,9 @@ hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
        }
       </script>
      </fieldset>
+     <div class="submit">
      <p><input type="submit" value="Save"></p>
+     </div>
      
      
 

@@ -102,10 +102,8 @@ def notes():
         for note in usernotes:
             notestext.append(note.title)
             notesids.append(note.id)
-        print(notesids)
-        print(notestext)
 
-        return render_template("notes.html", form=form, notestext=notestext, notesids=notesids, title="New Note", text="I'm thinking about...", currentid="new")
+        return render_template("notes.html", form=form, notestext=notestext, notesids=notesids, title="New Note", text="I'm thinking about...<br><br><br><br><br><br><br><br><br>", currentid="new")
 
 @app.route('/notes/<noteid>')
 def noteselected(noteid):
