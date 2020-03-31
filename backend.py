@@ -67,6 +67,10 @@ def home():
     else:
         return render_template("home.html", username= current_user.username)
 
+@app.route('/tanks')
+def tanks():
+    return render_template('Tanks.html')
+
 @app.route('/notes', methods=['GET','POST'])
 def notes():
     form = generalform()

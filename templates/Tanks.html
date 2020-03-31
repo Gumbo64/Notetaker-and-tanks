@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+
+</style>
+</head>
+<body onload="startGame()">
+
+<script>
+function startGame() {
+    redtank = new maketank(30, 30, "red", 225, 225);
+    bluetank= new maketank(30, 30, "blue", 225, 225);
+    gamearea.start();
+}
+
+var gamearea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = screen.width-100;
+        this.canvas.height = screen.height-100;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+        this.interval = setInterval(updateGameArea, 20);
+        window.addEventListener('keydown', function (e) {
+            e.preventDefault();
+            gamearea.keys = (gamearea.keys || []);
+            gamearea.keys[e.keyCode] = (e.type == "keydown");
+        })
+        window.addEventListener('keyup', function (e) {
+            gamearea.keys[e.keyCode] = (e.type == "keydown");
+        })
+    },
+    stop : function() {
+        clearInterval(this.interval);
+    },    
+    clear : function() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+}
+
+function maketank(width, height, color, x, y, type) {
+
+    this.type = type;
+    this.width = width;
+    this.height = height;
+    this.speed = 0;
+    this.angle = 0;
+    this.moveAngle = 0;
+    this.x = x;
+    this.y = y;    
+    this.update = function() {
+        ctx = gamearea.context;
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+        ctx.fillStyle = color;
+        ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+        ctx.restore();    
+    }
+    this.newPos = function() {
+        this.angle += this.moveAngle * Math.PI / 180;
+        this.x += this.speed * Math.sin(this.angle);
+        this.y -= this.speed * Math.cos(this.angle);
+    }
+}
+
+function updateGameArea() {
+    gamearea.clear();
+    redtank.moveAngle = 0;
+    redtank.speed = 0;
+    if (gamearea.keys && gamearea.keys[37]) {redtank.moveAngle = -1; }
+    if (gamearea.keys && gamearea.keys[39]) {redtank.moveAngle = 1; }
+    if (gamearea.keys && gamearea.keys[38]) {redtank.speed= 1;}
+    if (gamearea.keys && gamearea.keys[40]) {redtank.speed= -1; }
+    console.log(gamearea.keys)
+    redtank.newPos();
+    redtank.update();
+    bluetank.newPos();
+    bluetank.update();
+}
+</script>
+</body>
+</html>

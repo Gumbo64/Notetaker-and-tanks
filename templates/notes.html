@@ -6,21 +6,7 @@
 <script type="text/javascript"></script>
 <head>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/notes.css') }}">
-<script>
-hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
-  switch (handler.key) {
-    case 'ctrl+a': alert('you pressed ctrl+a!');
-      break;
-    case 'ctrl+b': alert('you pressed ctrl+b!');
-      break;
-    case 'r': alert('you pressed r!');
-      break;
-    case 'f': alert('you pressed f!');
-      break;
-    default: alert(event);
-  }
-});
-</script>
+
 <title>Notes++</title>
 </head>
 <form method="POST" onsubmit="return copyContent()" action="{{ url_for('notes') }}">
@@ -47,6 +33,7 @@ hotkeys('ctrl+a,ctrl+b,r,f', function (event, handler){
     </fieldset>
   </div>  
   <div class="notenavigation">
+      <p><a href="{{ url_for('notes') }}">   Create a new note</a></p>
       <script>
       var titles = {{ notestext | safe }};
       var ids = {{ notesids | safe }};
