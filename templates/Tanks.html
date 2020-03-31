@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
+<title>Tanks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <style>
 canvas {
     border:1px solid #d3d3d3;
     background-color: #f1f1f1;
+    
 }
 
 </style>
@@ -15,15 +17,15 @@ canvas {
 <script>
 function startGame() {
     redtank = new maketank(30, 30, "red", 225, 225);
-    bluetank= new maketank(30, 30, "blue", 225, 225);
+    bluetank= new maketank(30, 30, "blue", 500, 225);
     gamearea.start();
 }
 
 var gamearea = {
     canvas : document.createElement("canvas"),
     start : function() {
-        this.canvas.width = screen.width-100;
-        this.canvas.height = screen.height-100;
+        this.canvas.width = screen.width/2;
+        this.canvas.height = screen.height/2;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
@@ -75,10 +77,17 @@ function updateGameArea() {
     gamearea.clear();
     redtank.moveAngle = 0;
     redtank.speed = 0;
-    if (gamearea.keys && gamearea.keys[37]) {redtank.moveAngle = -1; }
-    if (gamearea.keys && gamearea.keys[39]) {redtank.moveAngle = 1; }
-    if (gamearea.keys && gamearea.keys[38]) {redtank.speed= 1;}
-    if (gamearea.keys && gamearea.keys[40]) {redtank.speed= -1; }
+    bluetank.moveAngle=0;
+    bluetank.speed=0;
+    if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -1; }
+    if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 1; }
+    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 1;}
+    if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -1; }
+
+    if (gamearea.keys && gamearea.keys[65]) {redtank.moveAngle = -1; }
+    if (gamearea.keys && gamearea.keys[68]) {redtank.moveAngle = 1; }
+    if (gamearea.keys && gamearea.keys[87]) {redtank.speed= 1;}
+    if (gamearea.keys && gamearea.keys[83]) {redtank.speed= -1; }
     console.log(gamearea.keys)
     redtank.newPos();
     redtank.update();
