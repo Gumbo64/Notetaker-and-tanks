@@ -29,7 +29,7 @@ var gamearea = {
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
-        this.interval = setInterval(updateGameArea, 20);
+        this.interval = setInterval(updateGameArea, 1);
         window.addEventListener('keydown', function (e) {
             e.preventDefault();
             gamearea.keys = (gamearea.keys || []);
@@ -70,6 +70,18 @@ function maketank(width, height, color, x, y, type) {
         this.angle += this.moveAngle * Math.PI / 180;
         this.x += this.speed * Math.sin(this.angle);
         this.y -= this.speed * Math.cos(this.angle);
+        if (this.x > gamearea.canvas.width){
+            this.x = gamearea.canvas.width;
+        }
+        if (this.x < 0) {
+            this.x = 0;
+        }
+        if (this.y > gamearea.canvas.height){
+            this.y = gamearea.canvas.height;
+        }
+        if (this.y < 0) {
+            this.y = 0;
+        }
     }
 }
 
@@ -79,10 +91,10 @@ function updateGameArea() {
     redtank.speed = 0;
     bluetank.moveAngle=0;
     bluetank.speed=0;
-    if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -1; }
-    if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 1; }
-    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 1;}
-    if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -1; }
+    if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -20; }
+    if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 20; }
+    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 20;}
+    if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -20; }
 
     if (gamearea.keys && gamearea.keys[65]) {redtank.moveAngle = -1; }
     if (gamearea.keys && gamearea.keys[68]) {redtank.moveAngle = 1; }
