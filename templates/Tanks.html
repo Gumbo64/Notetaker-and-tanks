@@ -15,13 +15,13 @@ canvas {
 </head>
 <canvas id='gamearea'></canvas>
 <body onload="startGame()">
-<img id="tankimg" src="{{url_for('static', filename='tank.png')}}" width="220" height="277" hidden>
+<img id="tankimg" src="{{url_for('static', filename='kevintank.png')}}" width="220" height="277" hidden>
 <img id="bulletimg" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <script>
 function startGame() {
     redtank = new maketank(100, 100,225, 225);
-    bluetank= new maketank(30, 30, 500, 225);
+    bluetank= new maketank(100, 100, 500, 225);
     wiper = new maketank(0,0,0,0)
     bullets = [];
     gamearea.start();
@@ -163,7 +163,7 @@ function updateGameArea() {
     redtank.update();
     wiper.update();
     wiper.newPos();
-    var maxbullets = 2000;
+    var maxbullets = 500;
     bullets.splice(0, bullets.length-maxbullets);
 
     
