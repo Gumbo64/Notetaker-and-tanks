@@ -7,28 +7,32 @@
 canvas {
     border:1px solid #d3d3d3;
     background-color: #f1f1f1;
-    
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 </style>
 </head>
+<canvas id='gamearea'></canvas>
 <body onload="startGame()">
+<img id="tankimg" src="{{url_for('static', filename='tank.png')}}" width="220" height="277" hidden>
+<img id="bulletimg" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <script>
 function startGame() {
-    redtank = new maketank(30, 30, "red", 225, 225);
-    bluetank= new maketank(30, 30, "blue", 500, 225);
+    redtank = new maketank(100, 100,225, 225);
+    bluetank= new maketank(30, 30, 500, 225);
+    wiper = new maketank(0,0,0,0)
+    bullets = [];
     gamearea.start();
 }
 
 var gamearea = {
-    canvas : document.createElement("canvas"),
+    canvas : document.getElementById("gamearea"),
     start : function() {
-        this.canvas.width = screen.width/2;
-        this.canvas.height = screen.height/2;
+        this.canvas.width = screen.width-50;
+        this.canvas.height = screen.height-200;
         this.context = this.canvas.getContext("2d");
-        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
-        this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 1);
         window.addEventListener('keydown', function (e) {
             e.preventDefault();
@@ -43,29 +47,64 @@ var gamearea = {
         clearInterval(this.interval);
     },    
     clear : function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx = this.context;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0, this.canvas.width*5, this.canvas.height*5);
+
+    }
+}
+function bullet(width, height, x, y, angle, speed, index) {
+    this.index = index;
+    this.width = width;
+    this.height = height;
+    this.x=x;
+    this.y=y;
+    this.angle=angle;
+    this.speed=speed;
+    this.x += this.height/2 * Math.sin(this.angle);
+    this.y -= this.height/2 * Math.cos(this.angle);
+    this.update = function() {
+        var ctx = gamearea.context;
+        var bulletimg = document.getElementById('bulletimg');
+        bulletimg.width=this.width;
+        bulletimg.height=this.height;
+        ctx.setTransform(1, 0, 0, 1, this.x, this.y); // sets scale and origin
+        ctx.rotate(this.angle);
+        ctx.drawImage(bulletimg, this.width / -2, this.height / -2, this.width, this.height);
+        }
+        
+    this.newPos = function() {
+        this.x += this.speed * Math.sin(this.angle);
+        this.y -= this.speed * Math.cos(this.angle);
+        
+        
+        
+        
     }
 }
 
-function maketank(width, height, color, x, y, type) {
-
-    this.type = type;
+function maketank(width, height, x, y) {
     this.width = width;
     this.height = height;
     this.speed = 0;
     this.angle = 0;
     this.moveAngle = 0;
     this.x = x;
-    this.y = y;    
-    this.update = function() {
-        ctx = gamearea.context;
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.rotate(this.angle);
-        ctx.fillStyle = color;
-        ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
-        ctx.restore();    
+    this.y = y;
+    this.shoot = function() {
+        newindex = bullets.length;
+        append = new bullet(30,50,this.x,this.y,this.angle,1,newindex);
+        bullets.push(append);
     }
+    this.update = function() {
+        var ctx = gamearea.context;
+        var tankimg = document.getElementById('tankimg');
+        tankimg.width=this.width;
+        tankimg.height=this.height;
+        ctx.setTransform(1, 0, 0, 1, this.x, this.y); // sets scale and origin
+        ctx.rotate(this.angle);
+        ctx.drawImage(tankimg, this.width / -2, this.height / -2, this.width, this.height);
+        }
     this.newPos = function() {
         this.angle += this.moveAngle * Math.PI / 180;
         this.x += this.speed * Math.sin(this.angle);
@@ -85,26 +124,50 @@ function maketank(width, height, color, x, y, type) {
     }
 }
 
+
+
 function updateGameArea() {
     gamearea.clear();
     redtank.moveAngle = 0;
     redtank.speed = 0;
     bluetank.moveAngle=0;
     bluetank.speed=0;
-    if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -20; }
-    if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 20; }
-    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 20;}
-    if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -20; }
+    if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -2; }
+    if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 2; }
+    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 4;}
+    if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -4; }
+    if (gamearea.keys && gamearea.keys[16]) {bluetank.shoot(); }
 
     if (gamearea.keys && gamearea.keys[65]) {redtank.moveAngle = -1; }
     if (gamearea.keys && gamearea.keys[68]) {redtank.moveAngle = 1; }
     if (gamearea.keys && gamearea.keys[87]) {redtank.speed= 1;}
     if (gamearea.keys && gamearea.keys[83]) {redtank.speed= -1; }
-    console.log(gamearea.keys)
-    redtank.newPos();
-    redtank.update();
+    if (gamearea.keys && gamearea.keys[32]) {redtank.shoot(); }
+    
+    
+    console.log(gamearea.keys);
+    temp = bullets.length;
+    var i;
+    for (i = 0; i < temp; i++) {
+        try{
+            bullets[i].update();
+            bullets[i].newPos();
+        }
+        catch(err) {
+            bullets.splice(i,1);
+        } 
+    }
     bluetank.newPos();
     bluetank.update();
+    redtank.newPos();
+    redtank.update();
+    wiper.update();
+    wiper.newPos();
+    var maxbullets = 2000;
+    bullets.splice(0, bullets.length-maxbullets);
+
+    
+    
 }
 </script>
 </body>
