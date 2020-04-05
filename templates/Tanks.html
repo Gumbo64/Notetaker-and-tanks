@@ -15,7 +15,7 @@ canvas {
 </head>
 <canvas id='gamearea'></canvas>
 <body onload="startGame()">
-<img id="tankimg" src="{{url_for('static', filename='kevintank.png')}}" width="220" height="277" hidden>
+<img id="tankimg" src="{{url_for('static', filename='Untitled.png')}}" width="220" height="277" hidden>
 <img id="bulletimg" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <script>
@@ -30,8 +30,8 @@ function startGame() {
 var gamearea = {
     canvas : document.getElementById("gamearea"),
     start : function() {
-        this.canvas.width = screen.width-50;
-        this.canvas.height = screen.height-200;
+        this.canvas.width = screen.width * 0.9;
+        this.canvas.height = screen.height * 0.75;
         this.context = this.canvas.getContext("2d");
         this.interval = setInterval(updateGameArea, 1);
         window.addEventListener('keydown', function (e) {
@@ -93,7 +93,7 @@ function maketank(width, height, x, y) {
     this.y = y;
     this.shoot = function() {
         newindex = bullets.length;
-        append = new bullet(30,50,this.x,this.y,this.angle,1,newindex);
+        append = new bullet(40,60,this.x,this.y,this.angle,4,newindex);
         bullets.push(append);
     }
     this.update = function() {
