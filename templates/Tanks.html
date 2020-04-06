@@ -19,6 +19,23 @@ canvas {
 <img id="bulletimg" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <script>
+function GetPointRotated(X, Y, W, H, R, Xos, Yos){
+	  
+	var rotatedX = X + (Xos  * Math.cos(R)) - (Yos * Math.sin(R));
+	var rotatedY = Y + (Xos  * Math.sin(R)) + (Yos * Math.cos(R));
+
+	return [rotatedX, rotatedY,X,Y];
+}
+
+function findcorners(xpos, ypos, angle, width, height) {
+    corner1 = GetPointRotated(xpos, ypos, width, height, angle, width/2, height/2);
+    corner2 = GetPointRotated(xpos, ypos, width, height, angle, -width/2, height/2);
+    corner3 = GetPointRotated(xpos, ypos, width, height, angle, width/2, -height/2);
+    corner4 = GetPointRotated(xpos, ypos, width, height, angle, -width/2, -height/2);
+    return[corner1,corner2,corner3,corner4];
+}
+
+
 function startGame() {
     redtank = new maketank(100, 100,225, 225);
     bluetank= new maketank(100, 100, 500, 225);
@@ -109,18 +126,24 @@ function maketank(width, height, x, y) {
         this.angle += this.moveAngle * Math.PI / 180;
         this.x += this.speed * Math.sin(this.angle);
         this.y -= this.speed * Math.cos(this.angle);
-        if (this.x > gamearea.canvas.width){
-            this.x = gamearea.canvas.width;
+        corners = findcorners(this.x,this.y,this.angle,this.width,this.height);
+        temp = corners.length;
+        var i;
+        for (i = 0; i < temp; i++) {
+            if (corners[i][0] > gamearea.canvas.width){
+                this.x = gamearea.canvas.width-(corners[i][0]-this.x);
+            }
+            if (corners[i][0] < 0) {
+                this.x = this.x-corners[i][0];
+            }
+            if (corners[i][1] > gamearea.canvas.height){
+                this.y = gamearea.canvas.height-(corners[i][1]-this.y);
+            }
+            if (corners[i][1] < 0) {
+                this.y = this.y-corners[i][1];
+            }
         }
-        if (this.x < 0) {
-            this.x = 0;
-        }
-        if (this.y > gamearea.canvas.height){
-            this.y = gamearea.canvas.height;
-        }
-        if (this.y < 0) {
-            this.y = 0;
-        }
+        
     }
 }
 
@@ -145,7 +168,7 @@ function updateGameArea() {
     if (gamearea.keys && gamearea.keys[32]) {redtank.shoot(); }
     
     
-    console.log(gamearea.keys);
+    /*console.log(gamearea.keys);*/
     temp = bullets.length;
     var i;
     for (i = 0; i < temp; i++) {
@@ -165,9 +188,6 @@ function updateGameArea() {
     wiper.newPos();
     var maxbullets = 500;
     bullets.splice(0, bullets.length-maxbullets);
-
-    
-    
 }
 </script>
 </body>
