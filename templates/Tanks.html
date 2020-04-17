@@ -15,7 +15,9 @@ canvas {
 </head>
 <canvas id='gamearea'></canvas>
 <body onload="startGame()">
-<img id="tankimg" src="{{url_for('static', filename='Untitled.png')}}" width="220" height="277" hidden>
+<img id="red" src="{{url_for('static', filename='Untitled.png')}}" width="220" height="277" hidden>
+<img id="blue" src="{{url_for('static', filename='outline.png')}}" width="220" height="277" hidden>
+
 <img id="bulletimg" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <script>
@@ -77,7 +79,7 @@ function findcorners(xpos, ypos, angle, width, height) {
     corner2 = GetPointRotated(xpos, ypos, width, height, angle, -width/2, height/2);
     corner3 = GetPointRotated(xpos, ypos, width, height, angle, width/2, -height/2);
     corner4 = GetPointRotated(xpos, ypos, width, height, angle, -width/2, -height/2);
-    return [corner1,corner2,corner3,corner4];
+    return [corner1,corner2,corner4,corner3];
 }
 
 
@@ -161,13 +163,22 @@ function maketank(width, height, x, y, colour) {
     }
     this.update = function() {
         var ctx = gamearea.context;
-        var tankimg = document.getElementById('tankimg');
-        tankimg.width=this.width;
-        tankimg.height=this.height;
-        ctx.setTransform(1, 0, 0, 1, this.x, this.y); // sets scale && origin
-        ctx.rotate(this.angle);
-        ctx.drawImage(tankimg, this.width / -2, this.height / -2, this.width, this.height);
+        if (this.colour == "wiper"){
+            var tankimg = document.getElementById('red');
+            tankimg.width=this.width;
+            tankimg.height=this.height;
+        }else{
+            var tankimg = document.getElementById(this.colour);
+            tankimg.width=this.width;
+            tankimg.height=this.height;
         }
+            ctx.setTransform(1, 0, 0, 1, this.x, this.y); // sets scale && origin
+            ctx.rotate(this.angle);
+            ctx.drawImage(tankimg, this.width / -2, this.height / -2, this.width, this.height);
+        
+        }
+        
+        
     this.othercorners = function(){
         /*  List structure for othercorners
             othercorners
@@ -196,6 +207,7 @@ function maketank(width, height, x, y, colour) {
         var ourcorners = this.corners();
         var othercorners = this.othercorners();
         var i;
+        var nexti;
         /* This for loop checks collision with other tanks*/
         center = new Point(this.x,this.y);
         /* for each diagonal on our tank...   */
@@ -211,7 +223,12 @@ function maketank(width, height, x, y, colour) {
                     }else{
                         nextk=k+1;
                     }
-                    if (doIntersect(center,ourcorners[i],othercorners[j][k],othercorners[j][nextk])){
+                    if (i==3){
+                        nexti=0;
+                    }else{
+                        nexti=i+1;
+                    }
+                    if (doIntersect(ourcorners[i],ourcorners[nexti],othercorners[j][k],othercorners[j][nextk])){
                         this.angle -= this.moveAngle * Math.PI / 180;
                         this.x -= this.speed * Math.sin(this.angle);
                         this.y += this.speed * Math.cos(this.angle);
@@ -253,7 +270,7 @@ function updateGameArea() {
     bluetank.speed=0;
     if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -2; }
     if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 2; }
-    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 10;}
+    if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 4;}
     if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -4; }
     if (gamearea.keys && gamearea.keys[16]) {bluetank.shoot(); }
 
