@@ -43,6 +43,11 @@ class Notes(db.Model):
     tier = db.Column(db.Integer)
     title = db.Column(db.String(999), default="Untitled")
     text = db.Column(db.String(9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999))
+class Chatroom(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), nullable=False)
+    text = db.Column(db.String(1000), nullable=False)
+    time = db.Column(db.DateTime, default=datetime.now)
     
 class LoginForm(FlaskForm):
     username = StringField('username')
@@ -161,6 +166,45 @@ def loginform():
             pass
         
     return render_template('login.html',form=loginform)
+@app.route('/_chatroom', methods = ['GET'])
+def chatrequest():
+    totaltext = []
+    query = Chatroom.query.all()
+    for comment in query:
+        adder = str(comment.time) + ") " + str(comment.username) + ": " + str(comment.text)
+        totaltext.append(adder)
+    totaltext.reverse()
+    return jsonify(totaltext=totaltext)
+
+
+@app.route('/chatroom', methods=['GET', 'POST'])
+def chatroom():
+    if not current_user.is_authenticated:
+        return "log in noob"
+    form = generalform()
+    if form.validate_on_submit():
+        comment = form.text.data
+        username = current_user.username
+        if comment == r"/clear" and username == 'Rory':
+            delete = Chatroom.query.all()
+            for row in delete:
+                db.session.delete(row)
+            cleared=Chatroom(username='System',text='Chat has been cleared')
+            db.session.add(cleared)
+            db.session.commit()
+        elif comment[0:4:1] == r"/ban" and username == 'Rory':
+            ban = User.query.filter_by(username= comment[5: : ]).first()
+            db.session.delete(ban)
+            db.session.commit()
+            cleared=Chatroom(username='System',text=ban.username + ' has been banned')
+            db.session.add(cleared)
+            db.session.commit()
+        else:
+            add = Chatroom(username=username, text=comment)
+            db.session.add(add)
+            db.session.commit()
+    return render_template('chatroom.html',form=form, username=current_user.username)
+
 if __name__ == '__main__':
      app.debug = True
      app.run()#ssl_context='adhoc'

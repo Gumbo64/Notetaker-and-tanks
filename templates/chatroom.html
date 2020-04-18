@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block header %}
+<h2>Signed in as {{ username }}</h2>
+{% endblock %}
+
+
+
+{% block text %}
+<!doctype html>
+<title>jQuery Example</title>
+<p>Newest at the top</p>
+<script type="text/javascript"
+  src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script type="text/javascript">
+  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+
+
+
+
+<script type="text/javascript">
+var intervalID = setInterval(update_values,5000);
+  function get_values() {
+      $.getJSON($SCRIPT_ROOT + '/_chatroom',
+
+      function(data) {
+        $('#totaltext').html('<h1>Chatroom</h1>'); 
+        data.totaltext.forEach( function( val ) {
+            console.log(val);
+            $('#totaltext').append("<p> "+ val + "</p>");
+        });
+        
+      });
+
+    };
+    function stopTextColor() {
+      clearInterval(intervalID);
+    }
+    
+</script>
+<body onload="get_values();">
+<p>
+    <span id="totaltext">?</span>
+</p>
+</body>
+
+
+{% endblock %}
+
+{% block image %}
+<form method="POST" action="{{ url_for('chatroom') }}">
+    {{ form.csrf_token }}
+    {{ form.text.label}}
+    {{ form.text }}
+    <br>
+    <input type="submit" value="Comment">
+{% endblock %}
