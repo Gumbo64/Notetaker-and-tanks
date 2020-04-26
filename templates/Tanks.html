@@ -26,7 +26,19 @@ function Point(x,y){
 	this.x = x;
 	this.y = y;
 }
-
+function formula(P,Q){
+  
+    x = Q.y - P.y;
+    y = P.x - Q.x; 
+    b = x*(P.x) + y*(P.y);
+    y = -y;
+    b = -b;
+    x = x/y;
+    b = b/y;
+    return [x,b];
+  
+    
+}
 
 function onSegment(p, q, r){
 	if (( (q.x <= Math.max(p.x, r.x)) && (q.x >= Math.min(p.x, r.x)) && (q.y <= Math.max(p.y, r.y)) && (q.y >= Math.min(p.y, r.y)))){
@@ -74,6 +86,9 @@ function GetPointRotated(X, Y, W, H, R, Xos, Yos){
     coords = new Point(rotatedX,rotatedY);
 	return coords;
 }
+function difference(a, b) {
+  return Math.abs(a - b);
+}
 function findcorners(xpos, ypos, angle, width, height) {
     corner1 = GetPointRotated(xpos, ypos, width, height, angle, width/2, height/2);
     corner2 = GetPointRotated(xpos, ypos, width, height, angle, -width/2, height/2);
@@ -89,6 +104,7 @@ function startGame() {
     wiper = new maketank(0,0,0,0, "wiper");
     tanks = [redtank, bluetank, wiper];
     bullets = [];
+    frictioncollision = document.getElementById("frictioncollision").checked;
     gamearea.start();
 }
 
@@ -98,6 +114,7 @@ var gamearea = {
         this.canvas.width = screen.width * 0.9;
         this.canvas.height = screen.height * 0.75;
         this.context = this.canvas.getContext("2d");
+        
         this.interval = setInterval(updateGameArea, 1);
         window.addEventListener('keydown', function (e) {
             e.preventDefault();
@@ -209,7 +226,7 @@ function maketank(width, height, x, y, colour) {
         var i;
         var nexti;
         /* This for loop checks collision with other tanks*/
-        center = new Point(this.x,this.y);
+        
         /* for each diagonal on our tank...   */
         for (i = 0; i < ourcorners.length; i++) {
             var j;
@@ -229,10 +246,39 @@ function maketank(width, height, x, y, colour) {
                         nexti=i+1;
                     }
                     if (doIntersect(ourcorners[i],ourcorners[nexti],othercorners[j][k],othercorners[j][nextk])){
-                        this.angle -= this.moveAngle * Math.PI / 180;
-                        this.x -= this.speed * Math.sin(this.angle);
-                        this.y += this.speed * Math.cos(this.angle);
                         console.log('contact');
+                        frictioncollision = document.getElementById("frictioncollision").checked;
+                        if (frictioncollision){
+                            this.angle -= this.moveAngle * Math.PI / 180;
+                            this.x -= this.speed * Math.sin(this.angle);
+                            this.y += this.speed * Math.cos(this.angle);
+                        }else{
+                            timeoutmax = 2 * this.speed;
+                            if (this.speed==0){
+                            }else{
+                                if (this.speed<0){
+                                    this.speed = -1;
+                                }else{
+                                    this.speed=1;
+                                }
+                            }
+                            colliding = true;
+                            xmove = this.speed * Math.sin(this.angle);
+                            ymove = this.speed * Math.cos(this.angle);
+                            timeout = 0;
+                            while (colliding){
+                                ourcorners = this.corners();
+                                othercorners = this.othercorners();
+                                this.x -= xmove;
+                                this.y += ymove;
+                                colliding = doIntersect(ourcorners[i],ourcorners[nexti],othercorners[j][k],othercorners[j][nextk]);
+                                timeout++;
+                                if (timeout>100){
+                                    colliding = false;
+                                }
+                            }
+                        }
+                        
                     }
                 }
             }
@@ -296,7 +342,7 @@ function updateGameArea() {
     temp = tanks.length;
     var i;
     for (i = 0; i < temp; i++) {
-        try{
+        
             if(tanks[i].colour != "wiper"){
                 tanks[i].update();
                 tanks[i].newPos();
@@ -304,12 +350,16 @@ function updateGameArea() {
                 tanks[i].update();
             }
             
-        }
-        catch(err) {} 
+        
     }
     var maxbullets = 500;
     bullets.splice(0, bullets.length-maxbullets);
 }
 </script>
+<br>
+<fieldset>
+<p>Friction collision</p>
+<input type="checkbox" id="frictioncollision">
+</fieldset>
 </body>
 </html>
