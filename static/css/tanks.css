@@ -1,0 +1,65 @@
+
+body{
+    background-color: lightcyan;
+}
+input.checkbox{
+    transform: scale(3);
+}
+.canvasgrid{
+    display: grid;
+    text-align: center;
+    grid-template-columns: auto 10vw;
+    grid-template-rows: 90vh;
+}
+.canvashold{
+    background-color: lightcyan;
+}
+.general{
+    background-color: lightcyan;
+    display: grid;
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+}
+.generalleft{
+    text-align: center;
+    grid-column-start: 1; 
+    grid-column-end: 2; 
+}
+.generalright{
+    text-align: center;
+    grid-column-start: 2; 
+    grid-column-end: 3; 
+}
+
+
+.alltanks {
+    display: grid;
+    text-align: center;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-gap: 5px;
+    padding: 5px;
+  }
+.alltankshold{
+    background-color: rgb(255, 255, 255);
+    grid-column-start: 2; 
+    grid-column-end: 3; 
+    
+}
+.center{
+    text-align: center;
+}
+.bothtanks {
+    background-color: rgb(255, 255, 255);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 5px;
+    padding: 5px;
+}
+fieldset {
+    background-color: rgb(255, 255, 255);
+    display: block;
+    border: 20px groove;
+}
+.pressable{
+    cursor: pointer;
+}

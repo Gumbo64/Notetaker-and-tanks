@@ -10,7 +10,7 @@
   }
 
 body {
-  background-color: #2196F3;
+  background-color: lightblue;
 }
 .submit {
   text-align: center;
@@ -37,8 +37,8 @@ video {
   }
 .notenavigation {
   grid-row-start:2 ;
-  grid-column-start: 1:
-  grid-column-end: 1
+  grid-column-start: 1;
+  grid-column-end: 1;
   text-align: center;
   overflow : auto;
 }
