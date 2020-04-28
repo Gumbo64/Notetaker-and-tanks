@@ -55,6 +55,9 @@ for (i=1;i<51;i++){
 for (i=1;i<201;i++){
     document.write('<audio id="hitmarker'+i+'"><source src="{{url_for("static", filename="hitmarker.mp3")}}" type="audio/mpeg"></audio>')
 }
+for (i=1;i<201;i++){
+    document.write('<audio id="shoot'+i+'"><source src="{{url_for("static", filename="shoot.mp3")}}" type="audio/mpeg"></audio>')
+}
 </script>
 </div>
 
@@ -103,14 +106,21 @@ for (i=1;i<201;i++){
 <input type="number" id="height" min="0" value=100 onclick='gamearea.listeneroff()' oninput="alltanks('height',this.value)">
 <p>Speed (%)</p>
 <input type="number" id="speedmult" min="0" value=100 onclick='gamearea.listeneroff()' oninput="alltanks('speedmult',this.value)">
+<p>Turn speed multiplier (%)</p>
+<input type="number" id="moveanglemult" min="0" value=100 onclick='gamearea.listeneroff()' oninput="alltanks('moveanglemult',this.value)">
 <p>Bullet speed (%)</p>
 <input type="number" id="bulletspeed" min="0" value=100 onclick='gamearea.listeneroff()' oninput="alltanks('bulletspeed',this.value)">
 <p>Maximum bullets</p>
-<input type="number" id="maxbullets" min="0" value=500 onclick='gamearea.listeneroff()' oninput="alltanks('maxbullets',this.value)">
+<input type="number" id="maxbullets" min="0" value=8 onclick='gamearea.listeneroff()' oninput="alltanks('maxbullets',this.value)">
 <p>Fire rate (time between each shot in ms)</p>
-<input type="number" id="firerate" min="0" value=500 onclick='gamearea.listeneroff()' oninput="alltanks('maxbullets',this.value)">
-<p>Turn speed multiplier (%)</p>
-<input type="number" id="moveanglemult" min="0" value=100 onclick='gamearea.listeneroff()' oninput="alltanks('moveanglemult',this.value)">
+<input type="number" id="firerate" min="0" value=50 onclick='gamearea.listeneroff()' oninput="alltanks('maxbullets',this.value)">
+<p>Bullet width (%)</p>
+<input type="number" id="bulletwidth" min="0" value=60 onclick='gamearea.listeneroff()' oninput="alltanks('bulletwidth',this.value)">
+<p>Bullet height (%)</p>
+<input type="number" id="bulletheight" min="0" value=80 onclick='gamearea.listeneroff()' oninput="alltanks('bulletheight',this.value)">
+
+
+
 
 </fieldset>
 
@@ -129,14 +139,18 @@ for (i=1;i<201;i++){
             <input type="number" id="redheight" min="0" value=100 onclick='gamearea.listeneroff()'>
             <p>Speed (%)</p>
             <input type="number" id="redspeedmult" min="0" value=100 onclick='gamearea.listeneroff()'>
+            <p>Turn speed multiplier (%)</p>
+            <input type="number" id="redmoveanglemult" min="0" value=100 onclick='gamearea.listeneroff()'>
             <p>Bullet speed (%)</p>
             <input type="number" id="redbulletspeed" min="0" value=100 onclick='gamearea.listeneroff()'>
             <p>Maximum bullets</p>
-            <input type="number" id="redmaxbullets" min="0" value=500 onclick='gamearea.listeneroff()'>
+            <input type="number" id="redmaxbullets" min="0" value=8 onclick='gamearea.listeneroff()'>
             <p>Fire rate (time between each shot in ms)</p>
-            <input type="number" id="redfirerate" min="0" value=500 onclick='gamearea.listeneroff()'> 
-            <p>Turn speed multiplier (%)</p>
-            <input type="number" id="redmoveanglemult" min="0" value=100 onclick='gamearea.listeneroff()'>
+            <input type="number" id="redfirerate" min="0" value=50 onclick='gamearea.listeneroff()'> 
+            <p>Bullet width (%)</p>
+            <input type="number" id="redbulletwidth" min="0" value=60 onclick='gamearea.listeneroff()'>
+            <p>Bullet height (%)</p>
+            <input type="number" id="redbulletheight" min="0" value=80 onclick='gamearea.listeneroff()'>
 
 
         </fieldset>
@@ -152,26 +166,39 @@ for (i=1;i<201;i++){
             <input type="number" id="blueheight" min="0" value=100 onclick='gamearea.listeneroff()'>
             <p>Speed (%)</p>
             <input type="number" id="bluespeedmult" min="0" value=100 onclick='gamearea.listeneroff()'>
+            <p>Turn speed multiplier (%)</p>
+            <input type="number" id="bluemoveanglemult" min=0 value=100 onclick='gamearea.listeneroff()'>
             <p>Bullet speed (%)</p>
             <input type="number" id="bluebulletspeed" min="0" value=100 onclick='gamearea.listeneroff()'>
             <p>Maximum bullets</p>
-            <input type="number" id="bluemaxbullets" min="0" value=500 onclick='gamearea.listeneroff()'>
+            <input type="number" id="bluemaxbullets" min="0" value=8 onclick='gamearea.listeneroff()'>
             <p>Fire rate (time between each shot in ms)</p>
-            <input type="number" id="bluefirerate" min="0" value=500 onclick='gamearea.listeneroff()'> 
-            <p>Turn speed multiplier (%)</p>
-            <input type="number" id="bluemoveanglemult" min="0" value=100 onclick='gamearea.listeneroff()'>
+            <input type="number" id="bluefirerate" min="0" value=50 onclick='gamearea.listeneroff()'> 
+            <p>Bullet width (%)</p>
+            <input type="number" id="bluebulletwidth" min="0" value=60 onclick='gamearea.listeneroff()'>
+            <p>Bullet height (%)</p>
+            <input type="number" id="bluebulletheight" min="0" value=80 onclick='gamearea.listeneroff()'>
         </fieldset>
     </div>
 </body>
 <script>
     lastpresstimes = {};
+    heldlast = {};
+    function heldlastmanage(button,newbool){
+        if (!heldlast[button]){
+            heldlast[button]=false;
+        }
+        heldlast[button] = newbool;
+        console.log(newbool);
+    }
     function lastpresstime(button, firerate){
         if (!lastpresstimes[button]){
-            lastpresstimes[button] = Date.now()
+            lastpresstimes[button] = Date.now();
+            heldlast[button]=false;
             return true;
         }
-        if (Date.now() - lastpresstimes[button]>=firerate){
-            lastpresstimes[button] = Date.now()
+        if (Date.now() - lastpresstimes[button]>=firerate && heldlast[button]==false){
+            lastpresstimes[button] = Date.now();
             return true;
         }
         return false;
@@ -182,6 +209,7 @@ for (i=1;i<201;i++){
     sounds = {};
     sounds['explosionsfx'] = [1,50];
     sounds['hitmarker'] = [1,200];
+    sounds['shoot']=[1,200];
 
     function playsound(id){
         combine = id + sounds[id][0];
@@ -395,6 +423,8 @@ for (i=1;i<201;i++){
             this.moveanglemult = elbyid(colour + 'moveanglemult').value/100;
             this.maxbullets = elbyid(colour + 'maxbullets').value;
             this.firerate = elbyid(colour + 'firerate').value;
+            this.bulletheight=elbyid(colour + 'bulletheight').value*gh/100;
+            this.bulletwidth=elbyid(colour + 'bulletwidth').value*gh/100;
         }else{
             this.health=Infinity;
             this.width=0;
@@ -410,8 +440,9 @@ for (i=1;i<201;i++){
             this.health = this.health -0.5;
         }
         this.shoot = function() {
-            append = new bullet(40,60,this.x,this.y,this.angle,this.bulletspeed,this.colour);
+            append = new bullet(this.bulletwidth,this.bulletheight,this.x,this.y,this.angle,this.bulletspeed,this.colour);
             bullets[this.colour].push(append);
+            playsound('shoot');
         }
         this.corners = function() {
             return findcorners(this.x,this.y,this.angle,this.width,this.height);
@@ -479,7 +510,7 @@ for (i=1;i<201;i++){
                     scores['red']++;
                 }
                 elbyid('redscore').innerHTML=scores['red'];
-                elbyid('bluescore'),innerHTML=scores['blue'];
+                elbyid('bluescore').innerHTML=scores['blue'];
                 startGame();
                 return 'ded'
             }
@@ -578,18 +609,26 @@ for (i=1;i<201;i++){
         redtank.speed = 0;
         bluetank.moveAngle=0;
         bluetank.speed=0;
-        if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -2; }
-        if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 2; }
-        if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 4;}
-        if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -4; }
-        if (gamearea.keys && gamearea.keys[16] && lastpresstime(16,bluetank.firerate)) {bluetank.shoot(); }
-    
+        if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -1; }
+        if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 1; }
+        if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 1;}
+        if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -1; }
+        if (gamearea.keys && gamearea.keys[16]){
+            if (lastpresstime(16,bluetank.firerate)){
+                bluetank.shoot();
+            }
+            heldlastmanage(16,true);
+        }else{heldlastmanage(16,false)}
         if (gamearea.keys && gamearea.keys[65]) {redtank.moveAngle = -1; }
         if (gamearea.keys && gamearea.keys[68]) {redtank.moveAngle = 1; }
         if (gamearea.keys && gamearea.keys[87]) {redtank.speed= 1;}
         if (gamearea.keys && gamearea.keys[83]) {redtank.speed= -1; }
-        if (gamearea.keys && gamearea.keys[32] && lastpresstime(32,redtank.firerate)) {redtank.shoot(); }
-        
+        if (gamearea.keys && gamearea.keys[32]){
+            if (lastpresstime(32,redtank.firerate)){
+                redtank.shoot();
+            }
+            heldlastmanage(32,true);
+        }else{heldlastmanage(32,false)}
         
         /*console.log(gamearea.keys);*/
         temp = tanks.length;
