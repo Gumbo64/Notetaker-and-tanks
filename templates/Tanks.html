@@ -188,24 +188,24 @@ for (i=1;i<201;i++){
     RLTank.prototype = {
         reset: function(){
           this.alpha = 0.1;//Learning rate 0 -1
-          this.gamma = 1;//Discount factor 0-1
-          this.food = {};
+          this.gamma = 0.9;//Discount factor 0-1
         },
         getState: function(){
             angledif = Math.atan2(bluetank.y - redtank.y, bluetank.x - redtank.x) * 180 / Math.PI;
-            distance = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width;
-            angledif = (bluetank.angle - angledif)/360;
+            distance = Math.round((Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width)/10)*10;
+            angledif = Math.round((bluetank.angle - angledif));
             s = [angledif,distance];
             return s;
         },
         getAction: function(state){
                 
               var q=[],qmax=0,qf=[];
-              for(l=0;l<9;l++){
+              for(l=1;l<10;l++){
                  q.push({"a": l,
                          "q": this.getQ(state, l)});
               }
               q = sortByKey(q, 'q');
+              console.log(q)
               q.reverse();
               
               qf.push(q[0]);
@@ -233,12 +233,13 @@ for (i=1;i<201;i++){
               if(q[0]["q"]==q[8]["q"]){
                  qf.push(q[8]);
               }
+              console.log()
               return qf[Math.floor(Math.random() * qf.length)]["a"];
         },
         getQ: function(s, a){
-            var config = s.slice();
+            var config = s;
             config.push(a);
-            if (!(config in Q_table)) {
+            if (!Q_table[config]) {
                 // If there's no entry in the given Q-table for the given state-action
                 // pair, return a default reward score as 0
                 return 0;
@@ -246,19 +247,16 @@ for (i=1;i<201;i++){
             return Q_table[config];
         },
         setQ: function(s, a, r){
-            var config = s.slice();
+            var config = s;
             config.push(a);
-            if (!(config in Q_table)) {
-            Q_table[config] = 0;
-            }
-            Q_table[config] += r;
+            Q_table[config] = r;
         },
         learn: function(s, a,reward){
            var rewardForState=0;
            var futureState = this.getState();
-           
            var lv_string_c = JSON.stringify(s);
            var lv_string_f = JSON.stringify(futureState);
+           console.log(lv_string_c + "    " + lv_string_f)
            if(lv_string_c != lv_string_f){
                     rewardForState = reward
                     var optimalFutureValue = Math.max(this.getQ(futureState, 0), 
@@ -740,10 +738,11 @@ for (i=1;i<201;i++){
                 heldlastmanage(16,true);
             }else{heldlastmanage(16,false);}
         }else{
+            s = AItank.getState();
             agentwin = false;
             agentlose = false;
             reward = -1;
-            var action = AItank.getAction(AItank.getState());
+            var action = AItank.getAction(s);
             switch(down=up=right=left=!1,action){case 1:left=!0;break;case 2:right=!0;break;case 3:up=left=!0;break;case 4:down=left=!0;break;case 5:up=right=!0;break;case 6:down=right=!0;break;case 7:up=!0;break;case 8:down=!0;break;case 9:break;}
             if (left){
                 bluetank.moveAngle = -1;
@@ -814,11 +813,9 @@ for (i=1;i<201;i++){
                         reward = reward - 1000
                         AItank.learn(s,action,reward);
                         playsound('explosionsfx');
-                        elbyid('redscore').innerHTML=scores['red'];
-                        elbyid('bluescore').innerHTML=scores['blue'];
                         startGame()
                     }else{
-                        distancedifference = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width - distance;
+                        distancedifference = Math.round((Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width - distance)/10)*10;
                         reward = reward + distancedifference*1000;
                         AItank.learn(s,action,reward)
                     }
