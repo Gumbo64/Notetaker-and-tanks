@@ -4,6 +4,7 @@
 <title>Tanks</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/tanks.css') }}">
+<script src="{{ url_for('static', filename='jquery-2.1.0.js') }}"></script>
 </head>
 
 
@@ -29,23 +30,12 @@
     </div>
     </div>
 
-<div class="general">
-    <div class='generalleft'>
-        <fieldset>
-        <h2>Red score: </h2>
-        <p id='redscore'>0</p>
-        </fieldset>
-    </div>
-    <div class='generalright'>
-        <fieldset>
-        <h2>Blue score: </h2>
-        <p id='bluescore'>0</p>
-        </fieldset>
-    </div>
-</div>
+<fieldset>
+    <h1 id='temp'>WASD + Space for Redtank,Arrow keys + Shift for Bluetank</h1>
+</fieldset>
 
-<img id="red" src="{{url_for('static', filename='Untitled.png')}}" width="220" height="277" hidden>
-<img id="blue" src="{{url_for('static', filename='outline.png')}}" width="220" height="277" hidden>
+<img id="red" src="{{url_for('static', filename='kevintank.png')}}" width="220" height="277" hidden>
+<img id="blue" src="{{url_for('static', filename='tank.png')}}" width="220" height="277" hidden>
 <img id="walls" src="{{url_for('static', filename='black.png')}}" width="220" height="277" hidden>
 <div id='AudioSpamBecauseJavascriptCantOverlapSoundsSoIHaveToCycleThroughMultiple'>
 <script>
@@ -64,7 +54,7 @@ for (i=1;i<201;i++){
 
 
 </div>
-                            <img id="redbullet" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
+<img id="redbullet" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 <img id="bluebullet" src="{{url_for('static', filename='dart.png')}}" width="220" height="277" hidden>
 
 <br>
@@ -77,6 +67,15 @@ for (i=1;i<201;i++){
 <input type="checkbox" value=true id="symmetry" class="checkbox" oninput="symmetry()">
 <p>Friction collision</p>
 <input type="checkbox" id="frictioncollision" class = "checkbox" oninput="frictioncollision = !frictioncollision">
+<p>Hold to fire</p>
+<input type="checkbox" id="holdfire" class = "checkbox" oninput="holdfire = !holdfire">
+<p>Mute Sounds</p>
+<input type="checkbox" id="nosound" class = "checkbox" oninput="nosound = !nosound">
+<p>AI mode</p>
+<input type="checkbox" id="aimode" class = "checkbox" oninput="aimode = !aimode">
+<p>Round time in ms (ai mode only)</p>
+<input type="number" id="health" min="1" value=1600 onclick='gamearea.listeneroff()' oninput="timeoutamax = this.value">
+
 </fieldset>
 </div>
 
@@ -182,6 +181,171 @@ for (i=1;i<201;i++){
     </div>
 </body>
 <script>
+    env = new RLTank
+    var RLTank = function() { 
+     this.reset();
+    }
+    RLTank.prototype = {
+        reset: function(){
+          this.alpha = 0.1;//Learning rate 0 -1
+          this.gamma = 1;//Discount factor 0-1
+          this.food = {};
+        },
+        getState: function(){
+            //State Vector:
+            //Is it clear ahead ?
+            //Is it clear left ?
+            //Is it clear right ?
+            //Is food ahead ?
+            //Is food left ?
+            //Is food right ?
+            var s=[];
+            var px = snake_array[0].x;
+            var py = snake_array[0].y;
+            var p1=0,p2=0,p3=0;
+            
+            if(started == false){//Game over state
+               return [0,0,0,0,0,0];
+            }
+            
+            //Is it clear left 0 - No 1 - Yes
+            if(d=="right"){//ahead:x++;left=y--;right=y++
+                p1=px + 1;
+                p2=py - 1;
+                p3=py + 1;
+                s.push(checkIfClear(p1,py));//check clear ahead
+                s.push(checkIfClear(px,p2));//check clear left
+                s.push(checkIfClear(px,p3));//check clear right
+                
+                s = s.concat(checkIfFood(px,py,d));//check food
+            }
+            if(d=="left"){//ahead:x--;left=y++;right=y--
+                p1=px - 1;
+                p2=py + 1;
+                p3=py - 1;
+                s.push(checkIfClear(p1,py));//check clear ahead
+                s.push(checkIfClear(px,p2));//check clear left
+                s.push(checkIfClear(px,p3));//check clear right
+                
+                s = s.concat(checkIfFood(px,py,d));//check food
+            } 
+            if(d=="up"){//ahead:y--;left=x--;right=x++
+                p1=py - 1;
+                p2=px - 1;
+                p3=px + 1;
+                s.push(checkIfClear(px,p1));//check clear ahead
+                s.push(checkIfClear(p2,py));//check clear left
+                s.push(checkIfClear(p3,py));//check clear right
+                
+                s = s.concat(checkIfFood(px,py,d));//check food
+            } 
+            if(d=="down"){//ahead:y++;left=x++;right=x--
+                p1=py + 1;
+                p2=px + 1;
+                p3=px - 1;
+                s.push(checkIfClear(px,p1));//check clear ahead
+                s.push(checkIfClear(p2,py));//check clear left
+                s.push(checkIfClear(p3,py));//check clear right
+                
+                s = s.concat(checkIfFood(px,py,d));//check food
+            }   
+            return s;
+        },
+        getAction: function(state){
+                
+              var q=[],qmax=0,qf=[];
+              for(l=0;l<9;l++){
+                 q.push({"a": l,
+                         "q": this.getQ(state, l)});
+              }
+              q = sortByKey(q, 'q');
+              q.reverse();
+              
+              qf.push(q[0]);
+              if(q[0]["q"]==q[1]["q"]){
+                 qf.push(q[1]);
+              }
+              if(q[0]["q"]==q[2]["q"]){
+                 qf.push(q[2]);
+              }
+              if(q[0]["q"]==q[3]["q"]){
+                 qf.push(q[3]);
+              }
+              if(q[0]["q"]==q[4]["q"]){
+                 qf.push(q[4]);
+              }
+              if(q[0]["q"]==q[5]["q"]){
+                 qf.push(q[5]);
+              }
+              if(q[0]["q"]==q[6]["q"]){
+                 qf.push(q[6]);
+              }
+              if(q[0]["q"]==q[7]["q"]){
+                 qf.push(q[7]);
+              }
+              if(q[0]["q"]==q[8]["q"]){
+                 qf.push(q[8]);
+              }
+            
+              
+              
+            
+              return qf[Math.floor(Math.random() * qf.length)]["a"];
+        },
+        getQ: function(s, a){
+            var config = s.slice();
+            config.push(a);
+            if (!(config in Q_table)) {
+                // If there's no entry in the given Q-table for the given state-action
+                // pair, return a default reward score as 0
+                return 0;
+            }
+            return Q_table[config];
+        },
+        setQ: function(s, a, r){
+            var config = s.slice();
+            config.push(a);
+            if (!(config in Q_table)) {
+            Q_table[config] = 0;
+            }
+            Q_table[config] += r;
+        },
+        reward: function(s, a){
+           var rewardForState=0;
+           var futureState = this.getState();
+           
+           var lv_string_c = JSON.stringify(s);
+           var lv_string_f = JSON.stringify(futureState);
+           if(lv_string_c != lv_string_f){
+                   //If snake collides, reward = -1
+                   //If snake gets closer to food, reward=1
+                    if((s[0]==0 && a==0) || (s[1]==0 && a==1) || (s[2]==0 && a==2)){
+                      rewardForState=-1;
+                    }
+                    if((s[0]==1 && a==0 && s[3]==1) || (s[1]==1 && a==1 && s[4]==1) || (s[2]==1 && a==2 && s[5]==1)){
+                      rewardForState=1;
+                    }
+
+                    var optimalFutureValue = Math.max(this.getQ(futureState, 0), 
+                                                      this.getQ(futureState, 1),
+                                                      this.getQ(futureState, 2));
+                    var updateValue = this.alpha*(rewardForState + this.gamma * optimalFutureValue - this.getQ(s, a));
+
+                    this.setQ(s, a, updateValue);
+           }    
+        } 
+    }
+    
+    function sortByKey(array, key) {
+        return array.sort(function(a, b) {
+            var x = a[key]; var y = b[key];
+            return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+        });
+    }
+    
+    agent = new RL.DQNAgent(env, spec);   
+
+    holdfire = false;
     lastpresstimes = {};
     heldlast = {};
     function heldlastmanage(button,newbool){
@@ -189,20 +353,24 @@ for (i=1;i<201;i++){
             heldlast[button]=false;
         }
         heldlast[button] = newbool;
-        console.log(newbool);
     }
+    
     function lastpresstime(button, firerate){
         if (!lastpresstimes[button]){
             lastpresstimes[button] = Date.now();
             heldlast[button]=false;
             return true;
         }
-        if (Date.now() - lastpresstimes[button]>=firerate && heldlast[button]==false){
+        if (Date.now() - lastpresstimes[button]>=firerate && (heldlast[button]==false || holdfire )){
             lastpresstimes[button] = Date.now();
             return true;
         }
         return false;
     }
+    aimode = false;
+    nosound = false;
+    timeoutamax=1600;
+    
     scores = {};
     scores['red'] = 0;
     scores['blue'] = 0;
@@ -212,6 +380,9 @@ for (i=1;i<201;i++){
     sounds['shoot']=[1,200];
 
     function playsound(id){
+        if (nosound){
+            return 0
+        }
         combine = id + sounds[id][0];
         elbyid(id + sounds[id][0]).play();
         sounds[id][0]++;
@@ -293,6 +464,7 @@ for (i=1;i<201;i++){
         return [corner1,corner2,corner4,corner3];
     }
     function startGame() {
+        timeouta = 0;
         backgroundcolour = '#ffffff';
         bullets = {};
         gamearea.stop();
@@ -300,8 +472,8 @@ for (i=1;i<201;i++){
         gh = gamearea.canvas.height / 6;
         gw = gamearea.canvas.width / 6;
         wiper = new maketank(0,0, "wiper",0);
-        redtank = new maketank(gw, gh, "red",Math.PI);
-        bluetank= new maketank(5 *gw , 5 *gh, "blue",0);
+        redtank = new maketank(gw, gh, "red",Math.PI/2);
+        bluetank= new maketank(5 *gw , 5 *gh, "blue",Math.PI*1.5);
         tanks = [redtank, bluetank, wiper];
         frictioncollision = false;
         symmetrybool = false;
@@ -316,6 +488,15 @@ for (i=1;i<201;i++){
         e.preventDefault();
         gamearea.keys = (gamearea.keys || []);
         gamearea.keys[e.keyCode] = (e.type == "keydown");
+    }
+    function touchHandler(e) {
+        e.preventDefault();
+        if(e.touches) {
+            for (i=0;i<e.touches.length;i++){
+                e.touches[i]
+            }
+            
+        }
     }
     var gamearea = {
         canvas : document.getElementById("gamearea"),
@@ -333,10 +514,16 @@ for (i=1;i<201;i++){
         listeneron : function(){
             window.addEventListener('keydown', keydown)
             window.addEventListener('keyup', keyup)
+            el = gamearea.canvas;
+            el.addEventListener("touchstart", touchHandler);
+            el.addEventListener("touchmove", touchHandler);
         },
         listeneroff : function(){
             window.removeEventListener('keydown', keydown)
             window.removeEventListener('keyup',keyup )
+            el = gamearea.canvas;
+            el.removeEventListener("touchstart", touchHandler);
+            el.removeEventListener("touchmove", touchHandler);
         },
         stop : function() {
             clearInterval(this.interval);
@@ -399,6 +586,11 @@ for (i=1;i<201;i++){
                             for (p=0;p<tanks.length-1;p++){
                                 if (tanks[p].colour == othercorners[j][4]){
                                     tanks[p].damage();
+                                    if (tanks[p].colour == 'red'){
+                                        agentlose = true;
+                                    }else{
+                                        agentwin=true;
+                                    }
                                 }
                             }
                             this.x = -9999999999;
@@ -503,15 +695,6 @@ for (i=1;i<201;i++){
             if (this.health <= 0){
                 this.x = -99999999;
                 this.y = -99999999;
-                playsound('explosionsfx');
-                if (this.colour == 'red'){
-                    scores['blue']++;
-                }else{
-                    scores['red']++;
-                }
-                elbyid('redscore').innerHTML=scores['red'];
-                elbyid('bluescore').innerHTML=scores['blue'];
-                startGame();
                 return 'ded'
             }
             this.angle += this.moveAngle * this.moveanglemult * Math.PI / 180;
@@ -542,7 +725,6 @@ for (i=1;i<201;i++){
                             nexti=i+1;
                         }
                         if (doIntersect(ourcorners[i],ourcorners[nexti],othercorners[j][k],othercorners[j][nextk])){
-                            console.log('contact');
                             if (frictioncollision){
                                 this.angle -= this.moveAngle * Math.PI / 180;
                                 this.x -= this.speedmult * this.speed * Math.sin(this.angle);
@@ -604,21 +786,53 @@ for (i=1;i<201;i++){
     
     
     function updateGameArea() {
+        /* main loop */
         gamearea.clear();
         redtank.moveAngle = 0;
         redtank.speed = 0;
         bluetank.moveAngle=0;
         bluetank.speed=0;
-        if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -1; }
-        if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 1; }
-        if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 1;}
-        if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -1; }
-        if (gamearea.keys && gamearea.keys[16]){
+        if (!aimode){
+            if (gamearea.keys && gamearea.keys[37]) {bluetank.moveAngle = -1; }
+            if (gamearea.keys && gamearea.keys[39]) {bluetank.moveAngle = 1; }
+            if (gamearea.keys && gamearea.keys[38]) {bluetank.speed= 1;}
+            if (gamearea.keys && gamearea.keys[40]) {bluetank.speed= -1; }
+            if (gamearea.keys && gamearea.keys[16]){
+                if (lastpresstime(16,bluetank.firerate)){
+                    bluetank.shoot();
+                }
+                heldlastmanage(16,true);
+            }else{heldlastmanage(16,false);}
+        }else{
+            agentwin = false;
+            agentlose = false;
+            reward = -1;
+            angledif = Math.atan2(bluetank.y - redtank.y, bluetank.x - redtank.x) * 180 / Math.PI;
+            distance = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width;
+            angledif = (bluetank.angle - angledif)/360;
+            s = [angledif,distance]
+            var action = agent.act(s);
+            console.log(action)
+            switch(down=up=right=left=!1,action){case 1:left=!0;break;case 2:right=!0;break;case 3:up=left=!0;break;case 4:down=left=!0;break;case 5:up=right=!0;break;case 6:down=right=!0;break;case 7:up=!0;break;case 8:down=!0;break;case 9:break;}
+            if (left){
+                bluetank.moveAngle = -1;
+            }
+            if (right){
+                bluetank.moveangle = 1;
+            }
+            if (down){
+                bluetank.speed = -1;
+            }
+            if (up){
+                bluetank.speed = 1;
+            }
             if (lastpresstime(16,bluetank.firerate)){
                 bluetank.shoot();
             }
-            heldlastmanage(16,true);
-        }else{heldlastmanage(16,false)}
+        }
+        
+
+
         if (gamearea.keys && gamearea.keys[65]) {redtank.moveAngle = -1; }
         if (gamearea.keys && gamearea.keys[68]) {redtank.moveAngle = 1; }
         if (gamearea.keys && gamearea.keys[87]) {redtank.speed= 1;}
@@ -634,18 +848,79 @@ for (i=1;i<201;i++){
         temp = tanks.length;
         var i;
         for (i = 0; i < temp; i++) {
-                if(tanks[i].colour != "wiper"){
-                    tanks[i].updatebullets();
-                    tanks[i].newPos();
-                    tanks[i].update();
-                } else{
-                    tanks[i].update();
-                }
-                
-            
+            if(tanks[i].colour != "wiper"){
+                tanks[i].updatebullets();
+                tanks[i].newPos();
+                tanks[i].update();
+            } else{
+                tanks[i].update();
+            }
         }
+        drawhealth();
+        if (aimode){
+            if (agentwin){
+            reward = reward + 50.0;
+            }      
+            if (agentlose){
+            reward = reward - 50.0;
+            }
+            timeouta= timeouta + 1;
+            if (timeouta >= timeoutamax){
+                reward = -1000;
+                agent.learn(reward);
+                scores['red'] = scores['red'] + 1
+                startGame();
+            }else{
+                if (redtank.health <=0){
+                    scores['blue'] = scores['blue'] + 1;
+                    reward = reward + (timeoutamax-timeouta) * 10;
+                    agent.learn(reward);
+                    playsound('explosionsfx');
+                    startGame()
+                }else{
+                    if (bluetank.health <= 0){
+                        scores['red'] = scores['red'] + 1;
+                        reward = reward - 1000
+                        agent.learn(reward);
+                        playsound('explosionsfx');
+                        elbyid('redscore').innerHTML=scores['red'];
+                        elbyid('bluescore').innerHTML=scores['blue'];
+                        startGame()
+                    }else{
+                        distancedifference = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width - distance;
+                        reward = reward + distancedifference*1000;
+                        agent.learn(reward)
+                    }
+                }
+            }
+        }else{
+            if (bluetank.health <=0){
+                scores['red']= scores['red'] + 1;
+                playsound('explosionsfx');
+                startGame()
+            }
+            if (redtank.health <=0){
+                scores['blue']=scores['blue'] + 1
+                playsound('explosionsfx');
+                startGame()
+            }
+        }
+    }
+    function drawhealth(){
+        canvas = gamearea.canvas;
+        context = gamearea.context;
+
+        context.fillStyle = "blue";
+        context.font = "bold 6vh Arial";
+        context.fillText(bluetank.health+'hp',bluetank.x,bluetank.y-gh);
+        context.fillText(scores['blue'],gw * 4,gh * 5);
+        context.fillStyle = "red";
+        context.font = "bold 6vh Arial";
+        context.fillText(redtank.health+'hp',redtank.x,redtank.y-gh);
+        context.fillText(scores['red'],gw * 2,gh * 5);
         
     }
+
     function alltanks(quality,newvalue){
         elbyid('red'+quality).value = newvalue;
         elbyid('blue'+quality).value = newvalue;
@@ -663,13 +938,13 @@ for (i=1;i<201;i++){
         }
     }
     function fullscreen(){
-               var el = document.getElementById('gamearea');
-                if(el.webkitRequestFullScreen) {
-                   el.webkitRequestFullScreen();
-                }
-                else {
-                    el.mozRequestFullScreen();
-                }            
+        var el = document.getElementById('gamearea');
+        if(el.webkitRequestFullScreen) {
+            el.webkitRequestFullScreen();
+        }
+        else {
+            el.mozRequestFullScreen();
+        }            
     }
     
     function uploader(inputid,imgid){
