@@ -181,7 +181,7 @@ for (i=1;i<201;i++){
     </div>
 </body>
 <script>
-    env = new RLTank
+    var Q_table = {};
     var RLTank = function() { 
      this.reset();
     }
@@ -192,63 +192,10 @@ for (i=1;i<201;i++){
           this.food = {};
         },
         getState: function(){
-            //State Vector:
-            //Is it clear ahead ?
-            //Is it clear left ?
-            //Is it clear right ?
-            //Is food ahead ?
-            //Is food left ?
-            //Is food right ?
-            var s=[];
-            var px = snake_array[0].x;
-            var py = snake_array[0].y;
-            var p1=0,p2=0,p3=0;
-            
-            if(started == false){//Game over state
-               return [0,0,0,0,0,0];
-            }
-            
-            //Is it clear left 0 - No 1 - Yes
-            if(d=="right"){//ahead:x++;left=y--;right=y++
-                p1=px + 1;
-                p2=py - 1;
-                p3=py + 1;
-                s.push(checkIfClear(p1,py));//check clear ahead
-                s.push(checkIfClear(px,p2));//check clear left
-                s.push(checkIfClear(px,p3));//check clear right
-                
-                s = s.concat(checkIfFood(px,py,d));//check food
-            }
-            if(d=="left"){//ahead:x--;left=y++;right=y--
-                p1=px - 1;
-                p2=py + 1;
-                p3=py - 1;
-                s.push(checkIfClear(p1,py));//check clear ahead
-                s.push(checkIfClear(px,p2));//check clear left
-                s.push(checkIfClear(px,p3));//check clear right
-                
-                s = s.concat(checkIfFood(px,py,d));//check food
-            } 
-            if(d=="up"){//ahead:y--;left=x--;right=x++
-                p1=py - 1;
-                p2=px - 1;
-                p3=px + 1;
-                s.push(checkIfClear(px,p1));//check clear ahead
-                s.push(checkIfClear(p2,py));//check clear left
-                s.push(checkIfClear(p3,py));//check clear right
-                
-                s = s.concat(checkIfFood(px,py,d));//check food
-            } 
-            if(d=="down"){//ahead:y++;left=x++;right=x--
-                p1=py + 1;
-                p2=px + 1;
-                p3=px - 1;
-                s.push(checkIfClear(px,p1));//check clear ahead
-                s.push(checkIfClear(p2,py));//check clear left
-                s.push(checkIfClear(p3,py));//check clear right
-                
-                s = s.concat(checkIfFood(px,py,d));//check food
-            }   
+            angledif = Math.atan2(bluetank.y - redtank.y, bluetank.x - redtank.x) * 180 / Math.PI;
+            distance = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width;
+            angledif = (bluetank.angle - angledif)/360;
+            s = [angledif,distance];
             return s;
         },
         getAction: function(state){
@@ -286,10 +233,6 @@ for (i=1;i<201;i++){
               if(q[0]["q"]==q[8]["q"]){
                  qf.push(q[8]);
               }
-            
-              
-              
-            
               return qf[Math.floor(Math.random() * qf.length)]["a"];
         },
         getQ: function(s, a){
@@ -310,27 +253,24 @@ for (i=1;i<201;i++){
             }
             Q_table[config] += r;
         },
-        reward: function(s, a){
+        learn: function(s, a,reward){
            var rewardForState=0;
            var futureState = this.getState();
            
            var lv_string_c = JSON.stringify(s);
            var lv_string_f = JSON.stringify(futureState);
            if(lv_string_c != lv_string_f){
-                   //If snake collides, reward = -1
-                   //If snake gets closer to food, reward=1
-                    if((s[0]==0 && a==0) || (s[1]==0 && a==1) || (s[2]==0 && a==2)){
-                      rewardForState=-1;
-                    }
-                    if((s[0]==1 && a==0 && s[3]==1) || (s[1]==1 && a==1 && s[4]==1) || (s[2]==1 && a==2 && s[5]==1)){
-                      rewardForState=1;
-                    }
-
+                    rewardForState = reward
                     var optimalFutureValue = Math.max(this.getQ(futureState, 0), 
                                                       this.getQ(futureState, 1),
-                                                      this.getQ(futureState, 2));
+                                                      this.getQ(futureState, 2),
+                                                      this.getQ(futureState, 3),
+                                                      this.getQ(futureState, 4),
+                                                      this.getQ(futureState, 5),
+                                                      this.getQ(futureState, 6),
+                                                      this.getQ(futureState, 7),
+                                                      this.getQ(futureState, 8));
                     var updateValue = this.alpha*(rewardForState + this.gamma * optimalFutureValue - this.getQ(s, a));
-
                     this.setQ(s, a, updateValue);
            }    
         } 
@@ -342,9 +282,7 @@ for (i=1;i<201;i++){
             return ((x < y) ? -1 : ((x > y) ? 1 : 0));
         });
     }
-    
-    agent = new RL.DQNAgent(env, spec);   
-
+    var AItank = new RLTank;
     holdfire = false;
     lastpresstimes = {};
     heldlast = {};
@@ -657,9 +595,7 @@ for (i=1;i<201;i++){
                 ctx.rotate(this.angle);
                 ctx.drawImage(tankimg, this.width / -2, this.height / -2, this.width, this.height);
             }
-        }
-            
-            
+        } 
         this.othercorners = function(){
             /*  List structure for othercorners
                 othercorners
@@ -807,12 +743,7 @@ for (i=1;i<201;i++){
             agentwin = false;
             agentlose = false;
             reward = -1;
-            angledif = Math.atan2(bluetank.y - redtank.y, bluetank.x - redtank.x) * 180 / Math.PI;
-            distance = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width;
-            angledif = (bluetank.angle - angledif)/360;
-            s = [angledif,distance]
-            var action = agent.act(s);
-            console.log(action)
+            var action = AItank.getAction(AItank.getState());
             switch(down=up=right=left=!1,action){case 1:left=!0;break;case 2:right=!0;break;case 3:up=left=!0;break;case 4:down=left=!0;break;case 5:up=right=!0;break;case 6:down=right=!0;break;case 7:up=!0;break;case 8:down=!0;break;case 9:break;}
             if (left){
                 bluetank.moveAngle = -1;
@@ -867,21 +798,21 @@ for (i=1;i<201;i++){
             timeouta= timeouta + 1;
             if (timeouta >= timeoutamax){
                 reward = -1000;
-                agent.learn(reward);
+                AItank.learn(s,action,reward);
                 scores['red'] = scores['red'] + 1
                 startGame();
             }else{
                 if (redtank.health <=0){
                     scores['blue'] = scores['blue'] + 1;
                     reward = reward + (timeoutamax-timeouta) * 10;
-                    agent.learn(reward);
+                    AItank.learn(s,action,reward);
                     playsound('explosionsfx');
                     startGame()
                 }else{
                     if (bluetank.health <= 0){
                         scores['red'] = scores['red'] + 1;
                         reward = reward - 1000
-                        agent.learn(reward);
+                        AItank.learn(s,action,reward);
                         playsound('explosionsfx');
                         elbyid('redscore').innerHTML=scores['red'];
                         elbyid('bluescore').innerHTML=scores['blue'];
@@ -889,7 +820,7 @@ for (i=1;i<201;i++){
                     }else{
                         distancedifference = Math.hypot(bluetank.x-redtank.x,bluetank.y-redtank.y)/gamearea.canvas.width - distance;
                         reward = reward + distancedifference*1000;
-                        agent.learn(reward)
+                        AItank.learn(s,action,reward)
                     }
                 }
             }
